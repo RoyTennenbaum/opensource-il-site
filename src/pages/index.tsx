@@ -163,7 +163,7 @@ export default function Home() {
     setSelectedLang("");
   };
 
-  const handleSortChange = (sortType: AllSortTypes) => {
+  const handleSortChange = async (sortType: AllSortTypes) => {
     let sorted;
     switch (sortType) {
       case "lastCommit":
@@ -197,13 +197,16 @@ export default function Home() {
         );
         break;
       case "default":
-        sorted = [...showData].sort(defaultSort);
+        setLoading(true);
+        setCurrentCompanyName(undefined);
+        await fetchRepos();
+        setLoading(false);
         break;
       default:
         sorted = [...showData];
         break;
     }
-    setShowData(sorted);
+    sortType !== "default" && sorted && setShowData(sorted);
     setSortFunction(sortType);
   };
 
