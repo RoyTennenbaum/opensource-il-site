@@ -9,7 +9,6 @@ interface FilterProps {
   activeSortType: AllSortTypes | undefined;
   onSortChange: (sortType: SortTypes) => void;
   setShouldShowFilters: (arg0: boolean) => unknown;
-  ש;
 }
 
 export default function Filter({
