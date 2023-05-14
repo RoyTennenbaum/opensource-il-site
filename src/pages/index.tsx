@@ -11,13 +11,8 @@ import { CompanyProps, DataProps, RepoProps, Views } from "@/types/index.types";
 import Modal from "@/components/HelpModal";
 import OrgIcon from "@/components/Icons/OrgIcon";
 import ReposIcon from "@/components/Icons/ReposIcon";
+import useMarkdown from "@/hooks/useMarkdown";
 
-// This silences warnings about deprecated options, which are enabled by default for some reason, taken from:
-// https://github.com/markedjs/marked/issues/2793#issuecomment-1532386286
-marked.use({
-  mangle: false,
-  headerIds: false,
-});
 const DEFAULT_READ_ME_PLACEHOLDER = `<div dir="rtl" style="font-size: 18px; font-family: 'Rubik'">בחרו ב-Repository מהרשימה כדי לקרוא את קובץ ה-README שלו!</div>`;
 
 export default function Home() {
@@ -34,6 +29,8 @@ export default function Home() {
   const [activeSortType, setSortFunction] = useState<
     AllSortTypes | undefined
   >();
+
+  const { parseMarkdown } = useMarkdown();
 
   const sortByLastCommit = (b: DataProps, a: DataProps) =>
     a.lastCommit < b.lastCommit ? -1 : a.lastCommit > b.lastCommit ? 1 : 0;
@@ -151,15 +148,14 @@ export default function Home() {
       res = await fetch(data.download_url);
       data = await res.text();
       const text = data.replace(`<nobr>`, ""),
-        html = marked.parse(text);
+        html = parseMarkdown(text);
       setReadmePreview(html);
       setIsReadmeLoading(false);
     }
   };
 
-  const onSelectCompany = (company: CompanyProps) => {
-    fetchCompanyRepos(company.login);
-    setCurrentCompanyName(company.name);
+  const onSelectCompany = (company: string[]) => {
+    fetchCompanyRepos(company[0]);
     setSelectedLang("");
   };
 
@@ -197,10 +193,7 @@ export default function Home() {
         );
         break;
       case "default":
-        setLoading(true);
-        setCurrentCompanyName(undefined);
-        await fetchRepos();
-        setLoading(false);
+        sorted = [...showData].sort(defaultSort);
         break;
       default:
         sorted = [...showData];
@@ -330,7 +323,7 @@ export default function Home() {
       </Head>
       {isLoading && loadingSpinner}
       <main className="flex flex-col items-center justify-between max-h-screen min-h-screen gap-4 p-6 pb-0 md:p-16 sm:p-8 sm:pb-0 md:pb-0">
-        <div className="flex flex-col w-full gap-2.5">
+        <div className="flex flex-col w-full lg:gap-2.5 md:gap-6 gap-2">
           <PageTitle
             view={view}
             setView={(view) => {
